@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QuietPaws - Mindful Meditation & Collectibles</title>
-  <meta name="description" content="QuietPaws - A quiet space for your mind to relax, meditate, and collect cozy room companions." />
+  <title>QuietPaws - Mindful Meditation & Cozy Companion House</title>
+  <meta name="description" content="QuietPaws - A quiet space for your mind to relax, meditate with custom timers, and collect cozy companions." />
   <link rel="stylesheet" href="./css/style.css" />
 </head>
 
@@ -14,19 +14,20 @@
     <!-- ==================== AUTH VIEW ==================== -->
     <section id="auth-view" class="view auth-view">
       <div class="auth-brand">
-        <span class="paw">🐾</span>
+        <div class="brand-badge">
+          <span class="paw-icon">🐾</span>
+        </div>
         <h1>QuietPaws</h1>
-        <p>A quiet space for your mind to Relax.</p>
+        <p>A gentle space for your mind to rest & focus.</p>
       </div>
 
       <form class="auth-card" id="auth-form">
         <div class="tabs">
           <button type="button" class="tab active" data-mode="login">
-            Log in
+            Log In
           </button>
-
           <button type="button" class="tab" data-mode="signup">
-            Sign up
+            Sign Up
           </button>
         </div>
 
@@ -40,7 +41,7 @@
         </label>
 
         <label>
-          Email
+          Email Address
           <input
             required
             type="email"
@@ -68,7 +69,7 @@
 
         <p class="error" id="auth-error"></p>
 
-        <button class="primary full" type="submit">
+        <button class="primary full glow-button" type="submit">
           Log In
         </button>
       </form>
@@ -78,23 +79,21 @@
     <!-- ==================== MAIN APP ==================== -->
     <section id="app-view" class="hidden">
 
-      <!-- Header -->
-      <header>
+      <!-- Glassmorphic Header -->
+      <header class="glass-header">
         <button class="brand" data-view="timer">
-          🐾 QuietPaws
+          <span class="brand-paw">🐾</span> QuietPaws
         </button>
 
-        <nav>
+        <nav class="nav-pills">
           <button data-view="timer" class="nav-link active">
-            Timer
+            ⏳ Timer
           </button>
-
           <button data-view="house" class="nav-link">
-            House
+            🏠 House
           </button>
-
           <button data-view="profile" class="nav-link">
-            Profile
+            👤 Profile
           </button>
         </nav>
 
@@ -109,116 +108,142 @@
 
 
       <!-- Streak Bar -->
-      <div class="streak">
-        <span>♨</span>
+      <div class="streak-bar">
+        <div class="streak-item">
+          <span class="fire-icon">♨</span>
+          <div class="streak-text">
+            <strong id="streak-count">0 Day Streak</strong>
+            <small id="streak-subtitle">Nothing is lost. Keep breathing.</small>
+          </div>
+        </div>
 
-        <span>
-          <strong id="streak-count">0 Day Streak</strong>
-          <small id="streak-subtitle">Nothing is ever lost. Keep breathing.</small>
-        </span>
-
-        <span class="trophy" id="best-streak-display">Best: 0 Days ♕</span>
+        <div class="streak-trophy" id="best-streak-display">
+          ♕ Best: 0 Days
+        </div>
       </div>
 
 
       <!-- ==================== TIMER VIEW ==================== -->
       <section class="view page" id="timer-view">
-        <div class="timer-wrap">
+        <div class="timer-card-wrap">
 
-          <div class="timer-ring" id="timer-ring">
-            <div class="timer-inner">
-              <span class="big-paw">🐾</span>
+          <!-- Circular Neumorphic Timer Ring -->
+          <div class="timer-ring-container" id="timer-ring">
+            <div class="timer-inner-circle">
+              <span class="pulse-paw">🐾</span>
               <strong id="time-display">5:00</strong>
-              <small>quiet time</small>
+              <small>quiet mindfulness</small>
             </div>
           </div>
 
-          <div class="intention-wrap">
+          <!-- Mindful Intention Input -->
+          <div class="intention-input-box">
+            <span class="sparkle">✨</span>
             <input
               type="text"
               id="timer-intention"
-              placeholder="What is your quiet intention? (e.g. Deep breathing)..."
+              placeholder="What is your quiet intention today? (e.g. Deep breathing)..."
             />
           </div>
 
-          <div class="durations">
-            <button data-minutes="2">2 min</button>
-            <button data-minutes="5" class="selected">5 min</button>
-            <button data-minutes="10">10 min</button>
+          <!-- Custom Timer Selection & Inputs -->
+          <div class="timer-settings-panel">
+            <div class="preset-pills">
+              <button data-minutes="2">2 min</button>
+              <button data-minutes="5" class="selected">5 min</button>
+              <button data-minutes="10">10 min</button>
+              <button data-minutes="25">25 min (Pomodoro)</button>
+              <button data-minutes="45">45 min</button>
+            </div>
+
+            <!-- Custom Minutes Stepper -->
+            <div class="custom-timer-stepper">
+              <label for="custom-minutes-input">Custom Duration:</label>
+              <div class="stepper-controls">
+                <button type="button" class="stepper-btn" id="minus-min" title="Decrease 1 minute">-</button>
+                <input
+                  type="number"
+                  id="custom-minutes-input"
+                  min="1"
+                  max="180"
+                  value="5"
+                />
+                <span class="stepper-unit">minutes</span>
+                <button type="button" class="stepper-btn" id="plus-min" title="Increase 1 minute">+</button>
+              </div>
+            </div>
           </div>
 
-          <div class="controls">
-            <button class="round secondary" id="reset-timer" title="Reset">
+          <!-- Play / Pause / Reset Controls -->
+          <div class="timer-controls">
+            <button class="round-control secondary-btn" id="reset-timer" title="Reset Timer">
               ↻
             </button>
 
-            <button class="round play" id="start-timer" title="Start / Pause">
+            <button class="round-control play-btn glow-play" id="start-timer" title="Start / Pause">
               ▶
             </button>
 
-            <button class="round secondary" id="stop-timer" title="Stop">
+            <button class="round-control secondary-btn" id="stop-timer" title="Stop Timer">
               ■
             </button>
           </div>
 
-          <p class="caption">no sound will play · peaceful mind awaits</p>
+          <p class="timer-caption">no sound will play · peaceful mind awaits</p>
         </div>
       </section>
 
 
-      <!-- ==================== HOUSE VIEW ==================== -->
+      <!-- ==================== HOUSE VIEW (No room banner!) ==================== -->
       <section class="view page hidden" id="house-view">
-        <div class="house-heading">
-          <h2>Your Cozy Corner</h2>
+        <div class="house-dashboard-header">
+          <h2>Your Cozy Sanctuary</h2>
+          <p class="house-subtitle">Collect companions & furniture for your peaceful space</p>
 
-          <p>
-            <span id="cats-found">0</span> of 12 cats found ·
-            <span id="pieces-found">0</span> of 12 pieces placed
-          </p>
+          <div class="house-stats-row">
+            <div class="house-stat-card">
+              <span class="stat-icon">🐱</span>
+              <div>
+                <strong id="cats-found">0 / 12</strong>
+                <small>Cats Collected</small>
+              </div>
+            </div>
 
-          <div class="progress">
-            <i id="progress-fill" style="width: 0%"></i>
+            <div class="house-stat-card">
+              <span class="stat-icon">🛋️</span>
+              <div>
+                <strong id="pieces-found">0 / 12</strong>
+                <small>Decor Placed</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Overall Progress Bar -->
+          <div class="progress-bar-wrap">
+            <div class="progress-label">
+              <span>Overall Progress</span>
+              <span id="progress-percent">0%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill-glow" id="progress-fill" style="width: 0%"></div>
+            </div>
           </div>
         </div>
 
-        <!-- Room Scene -->
-        <div class="room">
-          <div class="window">
-            <i></i><i></i><i></i><i></i>
-          </div>
-
-          <div class="sun"></div>
-          <div class="picture">✿</div>
-          <div class="plant">♣</div>
-          <div class="lamp">⌁</div>
-
-          <div class="sofa">
-            <span></span>
-            <i></i>
-            <i></i>
-          </div>
-
-          <div class="table">◯</div>
-          <div class="rug"></div>
-
-          <!-- Dynamic Unlocked Items in Room -->
-          <div id="room-cats-layer"></div>
-        </div>
-
-        <!-- Catalog Section -->
+        <!-- Catalog Grid Section -->
         <div class="catalog-section">
-          <div class="catalog-header">
-            <h3>Collectible Catalog</h3>
+          <div class="catalog-header-bar">
+            <h3>Sanctuary Collectibles</h3>
 
-            <div class="catalog-tabs">
+            <div class="catalog-filter-tabs">
               <button class="catalog-tab active" data-filter="all">All (24)</button>
-              <button class="catalog-tab" data-filter="cat">Cats (12)</button>
-              <button class="catalog-tab" data-filter="piece">Pieces (12)</button>
+              <button class="catalog-tab" data-filter="cat">Cats 🐱 (12)</button>
+              <button class="catalog-tab" data-filter="piece">Decor 🛋️ (12)</button>
             </div>
           </div>
 
           <div class="catalog-grid" id="collectibles-grid">
-            <!-- Dynamically populated via API -->
+            <!-- Dynamically populated via API with binary PNG assets -->
           </div>
         </div>
       </section>
@@ -229,40 +254,40 @@
         class="view page hidden profile-page"
         id="profile-view"
       >
-        <h2>Your Profile</h2>
+        <h2>Your Profile & Progress</h2>
 
-        <div class="profile-card">
-          <div class="avatar-circle">
+        <div class="profile-card-container">
+          <div class="avatar-glow">
             <span id="profile-initial">👤</span>
           </div>
 
-          <h3 id="profile-name">User Name</h3>
-          <p id="profile-email" class="profile-email">email@example.com</p>
+          <h3 id="profile-name">Mindful Friend</h3>
+          <p id="profile-email" class="profile-email">you@example.com</p>
 
-          <div class="profile-stats-grid">
-            <div class="stat-box">
-              <span class="stat-num" id="stat-current-streak">0</span>
-              <span class="stat-label">Current Streak</span>
+          <div class="profile-metrics-grid">
+            <div class="metric-card">
+              <span class="metric-num" id="stat-current-streak">0</span>
+              <span class="metric-label">Current Streak</span>
             </div>
 
-            <div class="stat-box">
-              <span class="stat-num" id="stat-best-streak">0</span>
-              <span class="stat-label">Best Streak</span>
+            <div class="metric-card">
+              <span class="metric-num" id="stat-best-streak">0</span>
+              <span class="metric-label">Best Streak</span>
             </div>
 
-            <div class="stat-box">
-              <span class="stat-num" id="stat-sessions">0</span>
-              <span class="stat-label">Sessions Completed</span>
+            <div class="metric-card">
+              <span class="metric-num" id="stat-sessions">0</span>
+              <span class="metric-label">Sessions Done</span>
             </div>
 
-            <div class="stat-box">
-              <span class="stat-num" id="stat-collectibles">0 / 24</span>
-              <span class="stat-label">Unlocked Items</span>
+            <div class="metric-card">
+              <span class="metric-num" id="stat-collectibles">0 / 24</span>
+              <span class="metric-label">Items Unlocked</span>
             </div>
           </div>
 
-          <button class="primary full" data-view="house" style="margin-top: 24px;">
-            ⌂ &nbsp; Visit Your House
+          <button class="primary full glow-button" data-view="house" style="margin-top: 28px;">
+            ⌂ &nbsp; Visit Your Sanctuary
           </button>
         </div>
       </section>
@@ -271,42 +296,44 @@
 
     <!-- ==================== REWARD / REVEAL VIEW ==================== -->
     <section id="reveal-view" class="view reveal-view hidden">
-      <h2>A New Companion Unlocked! 🌟</h2>
+      <div class="reveal-header">
+        <span class="sparkle-large">✨</span>
+        <h2>A New Companion Unlocked!</h2>
+      </div>
 
-      <div class="reveal-card">
-        <img
-          id="reward-image"
-          src="assets/cats/mochi.png"
-          alt="New unlocked reward"
-          onerror="this.src='assets/cats/cat3.jpeg'"
-        />
+      <div class="reveal-card-container">
+        <div class="reveal-img-circle">
+          <img
+            id="reward-image"
+            src="assets/cats/mochi.png"
+            alt="New unlocked reward"
+          />
+        </div>
 
         <h3 id="reward-name">Mochi</h3>
 
-        <p id="reward-trait">
+        <p id="reward-trait" class="reward-trait-text">
           Naps in sunbeams, ignores everyone.
         </p>
 
-        <p>
-          You completed a
-          <span id="reward-minutes">5</span>-minute
-          meditation session.
-        </p>
+        <div class="session-summary-pill">
+          You completed a <strong id="reward-minutes">5</strong>-minute quiet meditation!
+        </div>
       </div>
 
-      <div class="reveal-actions">
-        <button class="primary full" data-view="house">
-          ⌂ &nbsp; See your cozy house
+      <div class="reveal-actions-group">
+        <button class="primary full glow-button" data-view="house">
+          ⌂ &nbsp; View in Sanctuary House
         </button>
 
         <button class="soft full" data-view="timer">
-          ⌛ &nbsp; Sit again
+          ⌛ &nbsp; Begin Another Session
         </button>
       </div>
     </section>
 
 
-    <!-- ==================== COLLECTIBLE MODAL ==================== -->
+    <!-- ==================== ITEM MODAL ==================== -->
     <div id="cat-modal" class="modal hidden">
       <div class="modal-card">
         <button class="close" data-close>×</button>
@@ -316,15 +343,14 @@
             id="modal-image"
             src="assets/cats/mochi.png"
             alt="Item portrait"
-            onerror="this.src='assets/cats/cat3.jpeg'"
           />
         </div>
 
         <h2 id="modal-name">Mochi</h2>
 
-        <span class="found" id="modal-badge">Unlocked Item</span>
+        <span class="badge-tag" id="modal-badge">Unlocked Item</span>
 
-        <p class="trait" id="modal-trait">
+        <p class="trait-box" id="modal-trait">
           ☀ &nbsp; Naps in sunbeams, ignores everyone
         </p>
 
@@ -332,8 +358,8 @@
           “Slow is a lovely speed.”
         </blockquote>
 
-        <button class="primary full" data-close>
-          ⌂ &nbsp; Back to House
+        <button class="primary full glow-button" data-close>
+          ⌂ &nbsp; Back to Sanctuary
         </button>
       </div>
     </div>
@@ -341,16 +367,16 @@
 
     <!-- ==================== SETTINGS MODAL ==================== -->
     <div id="settings-modal" class="modal hidden">
-      <div class="modal-card settings">
+      <div class="modal-card settings-card">
         <button class="close" data-close>×</button>
 
-        <h2>Settings</h2>
+        <h2>App Settings</h2>
 
         <p>
-          Your account & sessions stay synchronized with Neon Cloud Database.
+          Your account & progress are safely synchronized with Neon Cloud Database.
         </p>
 
-        <button class="text-button full" id="logout" style="color: #c53030; font-size: 1.1rem; padding: 12px; font-weight: 600;">
+        <button class="danger-btn full" id="logout">
           🚪 Log Out
         </button>
       </div>

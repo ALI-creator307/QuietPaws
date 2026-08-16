@@ -18,7 +18,7 @@ function resolveImageUrl(rawUrl, category) {
   if (!rawUrl) {
     return category === 'cat' ? 'assets/cats/mochi.png' : 'assets/pieces/rug.png';
   }
-  // Remove leading slash if present so path is relative ('assets/cats/mochi.png')
+  // Remove leading slash if present ('assets/cats/mochi.png')
   return rawUrl.startsWith('/') ? rawUrl.slice(1) : rawUrl;
 }
 
@@ -116,7 +116,7 @@ function formatTime(seconds) {
   return `${minutes}:${secondsLeft}`;
 }
 
-function updateTimer() {
+function updateTimerDisplay() {
   const timeDisplay = document.querySelector("#time-display");
   const timerRing = document.querySelector("#timer-ring");
 
@@ -125,11 +125,28 @@ function updateTimer() {
   }
 
   if (timerRing) {
-    timerRing.style.setProperty(
-      "--progress",
-      `${(remaining / totalSeconds) * 100}%`
-    );
+    const progressPercent = totalSeconds > 0 ? (remaining / totalSeconds) * 100 : 100;
+    timerRing.style.setProperty("--progress", `${progressPercent}%`);
   }
+}
+
+function setTimerMinutes(mins) {
+  if (running) return;
+  mins = Math.max(1, Math.min(180, Number(mins) || 5));
+  selectedMinutes = mins;
+  totalSeconds = selectedMinutes * 60;
+  remaining = totalSeconds;
+
+  // Update custom input box
+  const customInput = document.querySelector("#custom-minutes-input");
+  if (customInput) customInput.value = selectedMinutes;
+
+  // Sync preset pills
+  document.querySelectorAll(".preset-pills button").forEach((btn) => {
+    btn.classList.toggle("selected", Number(btn.dataset.minutes) === selectedMinutes);
+  });
+
+  updateTimerDisplay();
 }
 
 async function finishSession() {
@@ -184,11 +201,11 @@ async function finishSession() {
     const rewardImgSrc = resolveImageUrl(rewardData.image_url, rewardData.type);
     document.querySelector("#reward-image").src = rewardImgSrc;
     document.querySelector("#reward-name").textContent = rewardData.name || "A New Companion!";
-    document.querySelector("#reward-trait").textContent = rewardData.detail || "Joined your cozy room.";
+    document.querySelector("#reward-trait").textContent = rewardData.detail || "Joined your cozy sanctuary.";
   } else {
     document.querySelector("#reward-image").src = "assets/cats/mochi.png";
     document.querySelector("#reward-name").textContent = "Quiet Moment";
-    document.querySelector("#reward-trait").textContent = "All room items collected! Your cozy space is complete.";
+    document.querySelector("#reward-trait").textContent = "All sanctuary companions collected! Peace achieved.";
   }
 
   document.querySelector("#reward-minutes").textContent = selectedMinutes;
@@ -270,7 +287,6 @@ document.querySelectorAll(".tab").forEach((tab) => {
     tab.classList.add("active");
     authMode = tab.dataset.mode || "login";
 
-    // Toggle Name field visibility
     if (nameGroup) {
       if (authMode === "signup") {
         nameGroup.classList.remove("hidden");
@@ -298,7 +314,7 @@ function updateStreakDisplay() {
   }
 
   if (bestStreakEl) {
-    bestStreakEl.textContent = `Best: ${bestStreak} Days ♕`;
+    bestStreakEl.textContent = `♕ Best: ${bestStreak} Days`;
   }
 }
 
@@ -317,7 +333,6 @@ async function loadProfileData() {
       bestStreak = data.streak ? data.streak.best : 0;
       updateStreakDisplay();
 
-      // Update Profile UI
       const profileNameEl = document.querySelector("#profile-name");
       const profileEmailEl = document.querySelector("#profile-email");
       const profileInitialEl = document.querySelector("#profile-initial");
@@ -365,16 +380,18 @@ async function loadHouseData() {
 
       catsFound = unlockedCats.length;
       piecesFound = unlockedPieces.length;
+      const totalUnlocked = catsFound + piecesFound;
+      const pct = Math.round((totalUnlocked / 24) * 100);
 
       const catsFoundEl = document.querySelector("#cats-found");
       const piecesFoundEl = document.querySelector("#pieces-found");
       const progressFillEl = document.querySelector("#progress-fill");
+      const progressPercentEl = document.querySelector("#progress-percent");
 
-      if (catsFoundEl) catsFoundEl.textContent = catsFound;
-      if (piecesFoundEl) piecesFoundEl.textContent = piecesFound;
-      if (progressFillEl) {
-        progressFillEl.style.width = `${((catsFound + piecesFound) / 24) * 100}%`;
-      }
+      if (catsFoundEl) catsFoundEl.textContent = `${catsFound} / 12`;
+      if (piecesFoundEl) piecesFoundEl.textContent = `${piecesFound} / 12`;
+      if (progressFillEl) progressFillEl.style.width = `${pct}%`;
+      if (progressPercentEl) progressPercentEl.textContent = `${pct}%`;
 
       renderCatalogGrid();
     }
@@ -463,7 +480,7 @@ function openItemModal(item) {
 }
 
 
-// Catalog Tabs (All / Cats / Pieces)
+// Catalog Tabs (All / Cats / Decor)
 document.querySelectorAll(".catalog-tab").forEach(tab => {
   tab.addEventListener("click", () => {
     document.querySelectorAll(".catalog-tab").forEach(t => t.classList.remove("active"));
@@ -474,7 +491,7 @@ document.querySelectorAll(".catalog-tab").forEach(tab => {
 });
 
 
-// ==================== NAVIGATION & TIMER DURATION ====================
+// ==================== NAVIGATION & TIMER DURATION CONTROLS ====================
 
 document.querySelectorAll("[data-view]").forEach((button) => {
   button.addEventListener("click", () => {
@@ -482,21 +499,34 @@ document.querySelectorAll("[data-view]").forEach((button) => {
   });
 });
 
-document.querySelectorAll(".durations button").forEach((button) => {
+// Preset Pills Click
+document.querySelectorAll(".preset-pills button").forEach((button) => {
   button.addEventListener("click", () => {
-    if (running) return;
-
-    selectedMinutes = Number(button.dataset.minutes);
-    totalSeconds = selectedMinutes * 60;
-    remaining = totalSeconds;
-
-    document.querySelectorAll(".durations button").forEach((item) => {
-      item.classList.toggle("selected", item === button);
-    });
-
-    updateTimer();
+    setTimerMinutes(Number(button.dataset.minutes));
   });
 });
+
+// Custom Minutes Stepper Inputs
+const customMinutesInput = document.querySelector("#custom-minutes-input");
+if (customMinutesInput) {
+  customMinutesInput.addEventListener("input", (e) => {
+    setTimerMinutes(e.target.value);
+  });
+}
+
+const minusMinBtn = document.querySelector("#minus-min");
+if (minusMinBtn) {
+  minusMinBtn.addEventListener("click", () => {
+    setTimerMinutes(selectedMinutes - 1);
+  });
+}
+
+const plusMinBtn = document.querySelector("#plus-min");
+if (plusMinBtn) {
+  plusMinBtn.addEventListener("click", () => {
+    setTimerMinutes(selectedMinutes + 1);
+  });
+}
 
 
 // ==================== TIMER CONTROLS ====================
@@ -516,7 +546,7 @@ if (startBtn) {
 
     timerId = setInterval(() => {
       remaining--;
-      updateTimer();
+      updateTimerDisplay();
 
       if (remaining <= 0) {
         finishSession();
@@ -531,7 +561,7 @@ if (resetBtn) {
     clearInterval(timerId);
     running = false;
     remaining = totalSeconds;
-    updateTimer();
+    updateTimerDisplay();
     if (startBtn) startBtn.textContent = "▶";
   });
 }
@@ -542,7 +572,7 @@ if (stopBtn) {
     clearInterval(timerId);
     running = false;
     remaining = totalSeconds;
-    updateTimer();
+    updateTimerDisplay();
     if (startBtn) startBtn.textContent = "▶";
   });
 }
@@ -582,7 +612,7 @@ if (logoutBtn) {
 // ==================== INITIAL STARTUP ====================
 
 async function init() {
-  updateTimer();
+  updateTimerDisplay();
   const token = getToken();
 
   if (token) {
