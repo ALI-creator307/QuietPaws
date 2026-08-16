@@ -14,6 +14,15 @@ function setToken(token) {
   }
 }
 
+function resolveImageUrl(rawUrl, category) {
+  if (!rawUrl) {
+    return category === 'cat' ? 'assets/cats/mochi.png' : 'assets/pieces/rug.png';
+  }
+  // Remove leading slash if present so path is relative ('assets/cats/mochi.png')
+  return rawUrl.startsWith('/') ? rawUrl.slice(1) : rawUrl;
+}
+
+
 // ==================== APP ELEMENTS ====================
 
 const appView = document.querySelector("#app-view");
@@ -172,7 +181,8 @@ async function finishSession() {
 
   // Populate reveal screen
   if (rewardData) {
-    document.querySelector("#reward-image").src = rewardData.image_url || "assets/cats/mochi.png";
+    const rewardImgSrc = resolveImageUrl(rewardData.image_url, rewardData.type);
+    document.querySelector("#reward-image").src = rewardImgSrc;
     document.querySelector("#reward-name").textContent = rewardData.name || "A New Companion!";
     document.querySelector("#reward-trait").textContent = rewardData.detail || "Joined your cozy room.";
   } else {
@@ -397,12 +407,13 @@ function renderCatalogGrid() {
     card.className = `catalog-card ${item.unlocked ? 'unlocked' : 'locked'}`;
 
     const isCat = item.category === 'cat';
+    const imgSrc = resolveImageUrl(item.image_url, item.category);
     const fallbackSrc = isCat ? 'assets/cats/mochi.png' : 'assets/pieces/rug.png';
 
     card.innerHTML = `
       <img
         class="catalog-card-img"
-        src="${item.image_url || fallbackSrc}"
+        src="${imgSrc}"
         alt="${item.name}"
         onerror="this.onerror=null; this.src='${fallbackSrc}';"
       />
@@ -431,9 +442,15 @@ function openItemModal(item) {
   const modalQuote = document.querySelector("#modal-quote");
   const modalBadge = document.querySelector("#modal-badge");
 
-  const fallbackSrc = item.type === 'cat' ? 'assets/cats/mochi.png' : 'assets/pieces/rug.png';
+  const category = item.type || item.category || 'cat';
+  const imgSrc = resolveImageUrl(item.image_url, category);
+  const fallbackSrc = category === 'cat' ? 'assets/cats/mochi.png' : 'assets/pieces/rug.png';
 
-  if (modalImg) modalImg.src = item.image_url || fallbackSrc;
+  if (modalImg) {
+    modalImg.src = imgSrc;
+    modalImg.onerror = () => { modalImg.src = fallbackSrc; };
+  }
+
   if (modalName) modalName.textContent = item.name;
   if (modalTrait) modalTrait.textContent = `☀  ${item.detail || 'A calm companion for your space.'}`;
   if (modalQuote) modalQuote.textContent = itemQuotes[item.name] || "“In quietness and confidence shall be your strength.”";

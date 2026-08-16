@@ -62,34 +62,35 @@ async function initDb() {
     const countRes = await pool.query('SELECT COUNT(*) as count FROM collectibles');
     if (parseInt(countRes.rows[0].count, 10) === 0) {
       const cats = [
-        ['cat', 'Mochi', 'Naps in sunbeams, ignores everyone', '/assets/cats/mochi.png', 1],
-        ['cat', 'Biscuit', 'Judges your life choices silently', '/assets/cats/biscuit.png', 2],
-        ['cat', 'Luna', 'Watches the night sky with curiosity', '/assets/cats/luna.png', 3],
-        ['cat', 'Oliver', 'Always ready for a gentle purr', '/assets/cats/oliver.png', 4],
-        ['cat', 'Cleo', 'Sits like royalty on cozy cushions', '/assets/cats/cleo.png', 5],
-        ['cat', 'Simba', 'Brave little explorer of quiet corners', '/assets/cats/simba.png', 6],
-        ['cat', 'Peanut', 'Small, playful, and loves cardboards', '/assets/cats/peanut.png', 7],
-        ['cat', 'Whiskers', 'Master of peaceful cat naps', '/assets/cats/whiskers.png', 8],
-        ['cat', 'Jasper', 'Quietly observes the room from above', '/assets/cats/jasper.png', 9],
-        ['cat', 'Hazel', 'Loves warm tea steam and quiet rooms', '/assets/cats/hazel.png', 10],
-        ['cat', 'Willow', 'Soft purrs that soothe your stress', '/assets/cats/willow.png', 11],
-        ['cat', 'Ziggy', 'Chases dust motes in gentle light', '/assets/cats/ziggy.png', 12],
+        ['cat', 'Mochi', 'Naps in sunbeams, ignores everyone', 'assets/cats/mochi.png', 1],
+        ['cat', 'Biscuit', 'Judges your life choices silently', 'assets/cats/biscuit.png', 2],
+        ['cat', 'Luna', 'Watches the night sky with curiosity', 'assets/cats/luna.png', 3],
+        ['cat', 'Oliver', 'Always ready for a gentle purr', 'assets/cats/oliver.png', 4],
+        ['cat', 'Cleo', 'Sits like royalty on cozy cushions', 'assets/cats/cleo.png', 5],
+        ['cat', 'Simba', 'Brave little explorer of quiet corners', 'assets/cats/simba.png', 6],
+        ['cat', 'Peanut', 'Small, playful, and loves cardboards', 'assets/cats/peanut.png', 7],
+        ['cat', 'Whiskers', 'Master of peaceful cat naps', 'assets/cats/whiskers.png', 8],
+        ['cat', 'Jasper', 'Quietly observes the room from above', 'assets/cats/jasper.png', 9],
+        ['cat', 'Hazel', 'Loves warm tea steam and quiet rooms', 'assets/cats/hazel.png', 10],
+        ['cat', 'Willow', 'Soft purrs that soothe your stress', 'assets/cats/willow.png', 11],
+        ['cat', 'Ziggy', 'Chases dust motes in gentle light', 'assets/cats/ziggy.png', 12],
       ];
 
       const pieces = [
-        ['piece', 'A soft rug', 'Warms up the floor', '/assets/pieces/rug.png', 1],
-        ['piece', 'Oak Coffee Table', 'Sturdy surface for warm tea', '/assets/pieces/coffee_table.png', 2],
-        ['piece', 'Armchair', 'Plush seat for quiet reading', '/assets/pieces/armchair.png', 3],
-        ['piece', 'Floor Lamp', 'Casts a warm, soothing glow', '/assets/pieces/lamp.png', 4],
-        ['piece', 'Plant Stand', 'Holds lush green houseplants', '/assets/pieces/plant_stand.png', 5],
-        ['piece', 'Cushion', 'Soft accent for cozy corners', '/assets/pieces/cushion.png', 6],
-        ['piece', 'Bookcase', 'Filled with peaceful stories', '/assets/pieces/bookcase.png', 7],
-        ['piece', 'Tea Set', 'Ceramic teapot and two cups', '/assets/pieces/tea_set.png', 8],
-        ['piece', 'Wall Clock', 'Ticks softly in rhythm with your breath', '/assets/pieces/clock.png', 9],
-        ['piece', 'Cat Bed', 'Warm fleece nest for furry friends', '/assets/pieces/cat_bed.png', 10],
-        ['piece', 'Knit Blanket', 'Handmade throw for chilly afternoons', '/assets/pieces/blanket.png', 11],
-        ['piece', 'Golden Bell', 'Chimes gently with the breeze', '/assets/pieces/golden_bell.png', 12],
+        ['piece', 'A soft rug', 'Warms up the floor', 'assets/pieces/rug.png', 1],
+        ['piece', 'Oak Coffee Table', 'Sturdy surface for warm tea', 'assets/pieces/coffee_table.png', 2],
+        ['piece', 'Armchair', 'Plush seat for quiet reading', 'assets/pieces/armchair.png', 3],
+        ['piece', 'Floor Lamp', 'Casts a warm, soothing glow', 'assets/pieces/lamp.png', 4],
+        ['piece', 'Plant Stand', 'Holds lush green houseplants', 'assets/pieces/plant_stand.png', 5],
+        ['piece', 'Cushion', 'Soft accent for cozy corners', 'assets/pieces/cushion.png', 6],
+        ['piece', 'Bookcase', 'Filled with peaceful stories', 'assets/pieces/bookcase.png', 7],
+        ['piece', 'Tea Set', 'Ceramic teapot and two cups', 'assets/pieces/tea_set.png', 8],
+        ['piece', 'Wall Clock', 'Ticks softly in rhythm with your breath', 'assets/pieces/clock.png', 9],
+        ['piece', 'Cat Bed', 'Warm fleece nest for furry friends', 'assets/pieces/cat_bed.png', 10],
+        ['piece', 'Knit Blanket', 'Handmade throw for chilly afternoons', 'assets/pieces/blanket.png', 11],
+        ['piece', 'Golden Bell', 'Chimes gently with the breeze', 'assets/pieces/golden_bell.png', 12],
       ];
+
 
       for (const item of [...cats, ...pieces]) {
         await pool.query(
