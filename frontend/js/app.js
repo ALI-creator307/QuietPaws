@@ -1,3 +1,21 @@
+// ==================== CONFIG & API ====================
+
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:5000'
+  : 'https://quiet-paws-mu.vercel.app';
+
+function getToken() {
+  return localStorage.getItem('quietpaws_token');
+}
+
+function setToken(token) {
+  if (token) {
+    localStorage.setItem('quietpaws_token', token);
+  } else {
+    localStorage.removeItem('quietpaws_token');
+  }
+}
+
 // ==================== APP ELEMENTS ====================
 
 const appView = document.querySelector("#app-view");
@@ -7,27 +25,14 @@ const revealView = document.querySelector("#reveal-view");
 const pages = document.querySelectorAll(".page");
 const navLinks = document.querySelectorAll(".nav-link");
 
-
-// ==================== CAT DATA ====================
-
-const cats = {
-  Luna: {
-    image: "assets/cats/cat3.jpeg",
-    trait: "Naps in sunbeams, ignores everyone",
-    quote: "“The sun is the best blanket.”",
-  },
-
-  Mochi: {
-    image: "assets/cats/cat1.jpeg",
-    trait: "Collects quiet moments by the window",
-    quote: "“Slow is a lovely speed.”",
-  },
-
-  Poppy: {
-    image: "assets/cats/cat2.jpeg",
-    trait: "Always finds the warmest spot",
-    quote: "“There is time for one more rest.”",
-  },
+// Default fallback catalog mapping
+const defaultCatQuotes = {
+  Mochi: "“The sun is the best blanket.”",
+  Biscuit: "“Slow is a lovely speed.”",
+  Luna: "“There is time for one more rest.”",
+  Oliver: "“Soft purrs fix everything.”",
+  Cleo: "“Royalty lies in quiet moments.”",
+  Simba: "“Brave hearts rest softly.”"
 };
 
 
@@ -43,9 +48,11 @@ let running = false;
 
 // ==================== HOUSE STATE ====================
 
-let catsFound = 3;
-let piecesFound = 2;
-let nextReward = "cat";
+let currentStreak = 0;
+let bestStreak = 0;
+let catsFound = 0;
+let piecesFound = 0;
+let authMode = "login"; // "login" or "signup"
 
 
 // ==================== VIEW MANAGEMENT ====================
@@ -63,9 +70,10 @@ function showView(name) {
   });
 
   // Show the selected page
-  document
-    .querySelector(`#${name}-view`)
-    .classList.remove("hidden");
+  const selectedPage = document.querySelector(`#${name}-view`);
+  if (selectedPage) {
+    selectedPage.classList.remove("hidden");
+  }
 
   // Update active navigation link
   navLinks.forEach((link) => {
@@ -75,9 +83,11 @@ function showView(name) {
     );
   });
 
-  // Update house information whenever House is opened
+  // Fetch updated data when opening House or Profile
   if (name === "house") {
-    updateHouse();
+    loadHouseData();
+  } else if (name === "profile") {
+    loadProfileData();
   }
 }
 
@@ -86,105 +96,231 @@ function showView(name) {
 
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60);
-
   const secondsLeft = String(seconds % 60).padStart(2, "0");
-
   return `${minutes}:${secondsLeft}`;
 }
-
 
 function updateTimer() {
   const timeDisplay = document.querySelector("#time-display");
   const timerRing = document.querySelector("#timer-ring");
 
-  // Update the countdown text
-  timeDisplay.textContent = formatTime(remaining);
+  if (timeDisplay) {
+    timeDisplay.textContent = formatTime(remaining);
+  }
 
-  // Update the circular progress
-  timerRing.style.setProperty(
-    "--progress",
-    `${(remaining / totalSeconds) * 100}%`
-  );
+  if (timerRing) {
+    timerRing.style.setProperty(
+      "--progress",
+      `${(remaining / totalSeconds) * 100}%`
+    );
+  }
 }
 
-
-function finishSession() {
+async function finishSession() {
   // Stop the timer
   clearInterval(timerId);
-
   running = false;
 
-  // Decide which cat will be rewarded
-  const reward =
-    catsFound % 3 === 0
-      ? "Poppy"
-      : catsFound % 2 === 0
-        ? "Mochi"
-        : "Luna";
+  // Restore start button icon
+  const startBtn = document.querySelector("#start-timer");
+  if (startBtn) startBtn.textContent = "▶";
 
-  // Update progress
-  catsFound++;
-  nextReward = "piece";
+  const token = getToken();
+  let rewardData = null;
+  let newStreakVal = currentStreak + 1;
 
-  // Update reward screen
-  document.querySelector("#reward-image").src =
-    cats[reward].image;
+  if (token) {
+    try {
+      const res = await fetch(`${API_BASE}/api/sessions/complete`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          durationMin: selectedMinutes,
+          intention: "Quiet pause"
+        })
+      });
 
-  document.querySelector("#reward-name").textContent =
-    reward;
+      if (res.ok) {
+        const data = await res.json();
+        newStreakVal = data.newStreak;
+        rewardData = data.reward;
+      }
+    } catch (err) {
+      console.error("Error completing session:", err);
+    }
+  }
 
-  document.querySelector("#reward-trait").textContent =
-    cats[reward].trait;
+  // Update streak count
+  currentStreak = newStreakVal;
+  updateStreakDisplay();
 
-  document.querySelector("#reward-minutes").textContent =
-    selectedMinutes;
+  // Populate reveal view
+  if (rewardData) {
+    document.querySelector("#reward-image").src = rewardData.image_url || "assets/cats/cat3.jpeg";
+    document.querySelector("#reward-name").textContent = rewardData.name || "A new friend!";
+    document.querySelector("#reward-trait").textContent = rewardData.detail || "Joined your cozy room.";
+  } else {
+    document.querySelector("#reward-image").src = "assets/cats/cat3.jpeg";
+    document.querySelector("#reward-name").textContent = "Quiet Moment";
+    document.querySelector("#reward-trait").textContent = "Peaceful mind achieved.";
+  }
 
-  // Switch from app to reward screen
+  document.querySelector("#reward-minutes").textContent = selectedMinutes;
+
+  // Switch from app to reveal screen
   appView.classList.add("hidden");
   revealView.classList.remove("hidden");
 
-  // Update house progress
-  updateHouse();
+  // Reload house progress
+  loadHouseData();
 }
 
 
 // ==================== AUTHENTICATION ====================
 
-document
-  .querySelector("#auth-form")
-  .addEventListener("submit", (event) => {
+const authForm = document.querySelector("#auth-form");
+const authError = document.querySelector("#auth-error");
+
+if (authForm) {
+  authForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+    authError.textContent = "";
 
-    // Hide login screen
-    authView.classList.add("hidden");
+    const emailInput = authForm.querySelector("input[type='email']");
+    const passwordInput = authForm.querySelector("input[type='password']");
 
-    // Open timer
-    showView("timer");
+    const email = emailInput ? emailInput.value.trim() : "";
+    const password = passwordInput ? passwordInput.value : "";
+
+    if (!email || !password) {
+      authError.textContent = "Please enter email and password";
+      return;
+    }
+
+    const endpoint = authMode === "signup" ? "/api/auth/signup" : "/api/auth/login";
+    const bodyData = authMode === "signup"
+      ? { name: email.split("@")[0], email, password }
+      : { email, password };
+
+    try {
+      const res = await fetch(`${API_BASE}${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bodyData)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        authError.textContent = data.error || "Authentication failed";
+        return;
+      }
+
+      setToken(data.token);
+      authView.classList.add("hidden");
+      showView("timer");
+      loadProfileData();
+      loadHouseData();
+    } catch (err) {
+      console.error("Auth error:", err);
+      authError.textContent = "Unable to connect to backend server.";
+    }
   });
+}
 
-
-// Login / Sign up tabs
+// Login / Sign up tabs toggle
 document.querySelectorAll(".tab").forEach((tab) => {
   tab.addEventListener("click", () => {
-
-    // Remove active state from all tabs
     document.querySelectorAll(".tab").forEach((item) => {
       item.classList.remove("active");
     });
 
-    // Activate clicked tab
     tab.classList.add("active");
+    authMode = tab.dataset.mode || "login";
 
-    // Change button text
-    document.querySelector("#auth-form .primary").textContent =
-      tab.dataset.mode === "login"
-        ? "Log In"
-        : "Create account";
+    const submitBtn = document.querySelector("#auth-form .primary");
+    if (submitBtn) {
+      submitBtn.textContent = authMode === "login" ? "Log In" : "Create account";
+    }
   });
 });
 
 
-// ==================== NAVIGATION ====================
+// ==================== DATA FETCHING ====================
+
+function updateStreakDisplay() {
+  const streakCountEl = document.querySelector("#streak-count");
+  if (streakCountEl) {
+    streakCountEl.textContent = `${currentStreak} Day Streak`;
+  }
+}
+
+async function loadProfileData() {
+  const token = getToken();
+  if (!token) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/user/profile`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      currentStreak = data.streak ? data.streak.current : 0;
+      bestStreak = data.streak ? data.streak.best : 0;
+      updateStreakDisplay();
+
+      const profileCardText = document.querySelector("#profile-view .profile-card p");
+      if (profileCardText) {
+        profileCardText.textContent = `Hello ${data.name || 'friend'}! You have sat with yourself for ${data.totalSessions || 0} calm sessions. Best streak: ${bestStreak} days.`;
+      }
+    } else if (res.status === 401) {
+      setToken(null);
+      appView.classList.add("hidden");
+      authView.classList.remove("hidden");
+    }
+  } catch (err) {
+    console.error("Error loading profile:", err);
+  }
+}
+
+async function loadHouseData() {
+  const token = getToken();
+  if (!token) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/user/rewards`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const unlockedCats = (data.cats || []).filter(c => c.unlocked);
+      const unlockedPieces = (data.pieces || []).filter(p => p.unlocked);
+
+      catsFound = unlockedCats.length;
+      piecesFound = unlockedPieces.length;
+
+      const catsFoundEl = document.querySelector("#cats-found");
+      const piecesFoundEl = document.querySelector("#pieces-found");
+      const progressFillEl = document.querySelector("#progress-fill");
+
+      if (catsFoundEl) catsFoundEl.textContent = catsFound;
+      if (piecesFoundEl) piecesFoundEl.textContent = piecesFound;
+      if (progressFillEl) {
+        progressFillEl.style.width = `${((catsFound + piecesFound) / 24) * 100}%`;
+      }
+    }
+  } catch (err) {
+    console.error("Error loading house data:", err);
+  }
+}
+
+
+// ==================== NAVIGATION & DURATION ====================
 
 document.querySelectorAll("[data-view]").forEach((button) => {
   button.addEventListener("click", () => {
@@ -192,251 +328,129 @@ document.querySelectorAll("[data-view]").forEach((button) => {
   });
 });
 
-
-// ==================== TIMER DURATION ====================
-
-document
-  .querySelectorAll(".durations button")
-  .forEach((button) => {
-
-    button.addEventListener("click", () => {
-
-      // Don't allow duration changes while timer is running
-      if (running) return;
-
-      // Get selected duration
-      selectedMinutes = Number(button.dataset.minutes);
-
-      // Convert minutes to seconds
-      totalSeconds = selectedMinutes * 60;
-
-      // Reset countdown
-      remaining = totalSeconds;
-
-      // Update selected button
-      document
-        .querySelectorAll(".durations button")
-        .forEach((item) => {
-
-          item.classList.toggle(
-            "selected",
-            item === button
-          );
-        });
-
-      // Update timer display
-      updateTimer();
-    });
-  });
-
-
-// ==================== START / PAUSE TIMER ====================
-
-document
-  .querySelector("#start-timer")
-  .addEventListener("click", () => {
-
-    // If timer is already running, pause it
-    if (running) {
-      clearInterval(timerId);
-
-      running = false;
-
-      document.querySelector("#start-timer").textContent =
-        "▶";
-
-      return;
-    }
-
-    // Start timer
-    running = true;
-
-    // Change button to pause symbol
-    document.querySelector("#start-timer").textContent =
-      "Ⅱ";
-
-    // Countdown every second
-    timerId = setInterval(() => {
-
-      remaining--;
-
-      updateTimer();
-
-      // Finish session when countdown reaches zero
-      if (remaining <= 0) {
-        finishSession();
-      }
-
-    }, 1000);
-  });
-
-
-// ==================== RESET TIMER ====================
-
-document
-  .querySelector("#reset-timer")
-  .addEventListener("click", () => {
-
-    // Stop timer
-    clearInterval(timerId);
-
-    running = false;
-
-    // Reset to selected duration
-    remaining = totalSeconds;
-
-    // Update display
-    updateTimer();
-
-    // Restore play button
-    document.querySelector("#start-timer").textContent =
-      "▶";
-  });
-
-
-// ==================== STOP TIMER ====================
-
-document
-  .querySelector("#stop-timer")
-  .addEventListener("click", () => {
-
-    // Stop timer
-    clearInterval(timerId);
-
-    running = false;
-
-    // Reset to selected duration
-    remaining = totalSeconds;
-
-    // Update display
-    updateTimer();
-
-    // Restore play button
-    document.querySelector("#start-timer").textContent =
-      "▶";
-  });
-
-
-// ==================== HOUSE ====================
-
-function updateHouse() {
-
-  // Update number of cats found
-  document.querySelector("#cats-found").textContent =
-    catsFound;
-
-  // Update number of furniture pieces
-  document.querySelector("#pieces-found").textContent =
-    piecesFound;
-
-  // Update progress bar
-  document.querySelector("#progress-fill").style.width =
-    `${((catsFound + piecesFound) / 24) * 100}%`;
-}
-
-
-// ==================== CAT INTERACTION ====================
-
-document
-  .querySelectorAll(".cat-at-home")
-  .forEach((button) => {
-
-    button.addEventListener("click", () => {
-
-      // Get selected cat
-      const cat = cats[button.dataset.cat];
-
-      // Update modal image
-      document.querySelector("#modal-image").src =
-        cat.image;
-
-      // Update cat name
-      document.querySelector("#modal-name").textContent =
-        button.dataset.cat;
-
-      // Update cat trait
-      document.querySelector("#modal-trait").textContent =
-        `☀  ${cat.trait}`;
-
-      // Update cat quote
-      document.querySelector("#modal-quote").textContent =
-        cat.quote;
-
-      // Show modal
-      document
-        .querySelector("#cat-modal")
-        .classList.remove("hidden");
-    });
-  });
-
-
-// ==================== SETTINGS ====================
-
-document
-  .querySelector("#settings-button")
-  .addEventListener("click", () => {
-
-    document
-      .querySelector("#settings-modal")
-      .classList.remove("hidden");
-  });
-
-
-// Close modals
-document.querySelectorAll("[data-close]").forEach((button) => {
-
+document.querySelectorAll(".durations button").forEach((button) => {
   button.addEventListener("click", () => {
+    if (running) return;
 
-    button
-      .closest(".modal")
-      .classList.add("hidden");
+    selectedMinutes = Number(button.dataset.minutes);
+    totalSeconds = selectedMinutes * 60;
+    remaining = totalSeconds;
+
+    document.querySelectorAll(".durations button").forEach((item) => {
+      item.classList.toggle("selected", item === button);
+    });
+
+    updateTimer();
   });
 });
 
 
-// ==================== RESET DEMO DATA ====================
+// ==================== TIMER CONTROLS ====================
 
-document
-  .querySelector("#reset-data")
-  .addEventListener("click", () => {
+const startBtn = document.querySelector("#start-timer");
+if (startBtn) {
+  startBtn.addEventListener("click", () => {
+    if (running) {
+      clearInterval(timerId);
+      running = false;
+      startBtn.textContent = "▶";
+      return;
+    }
 
-    // Reset house progress
-    catsFound = 0;
-    piecesFound = 0;
+    running = true;
+    startBtn.textContent = "Ⅱ";
 
-    // Update house
-    updateHouse();
+    timerId = setInterval(() => {
+      remaining--;
+      updateTimer();
 
-    // Close settings
-    document
-      .querySelector("#settings-modal")
-      .classList.add("hidden");
+      if (remaining <= 0) {
+        finishSession();
+      }
+    }, 1000);
   });
+}
+
+const resetBtn = document.querySelector("#reset-timer");
+if (resetBtn) {
+  resetBtn.addEventListener("click", () => {
+    clearInterval(timerId);
+    running = false;
+    remaining = totalSeconds;
+    updateTimer();
+    if (startBtn) startBtn.textContent = "▶";
+  });
+}
+
+const stopBtn = document.querySelector("#stop-timer");
+if (stopBtn) {
+  stopBtn.addEventListener("click", () => {
+    clearInterval(timerId);
+    running = false;
+    remaining = totalSeconds;
+    updateTimer();
+    if (startBtn) startBtn.textContent = "▶";
+  });
+}
 
 
-// ==================== LOG OUT ====================
+// ==================== MODALS & SETTINGS ====================
 
-document
-  .querySelector("#logout")
-  .addEventListener("click", () => {
+const settingsBtn = document.querySelector("#settings-button");
+if (settingsBtn) {
+  settingsBtn.addEventListener("click", () => {
+    const modal = document.querySelector("#settings-modal");
+    if (modal) modal.classList.remove("hidden");
+  });
+}
 
-    // Close settings
-    document
-      .querySelector("#settings-modal")
-      .classList.add("hidden");
+document.querySelectorAll("[data-close]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const modal = button.closest(".modal");
+    if (modal) modal.classList.add("hidden");
+  });
+});
 
-    // Hide application
+const logoutBtn = document.querySelector("#logout");
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    setToken(null);
+    const modal = document.querySelector("#settings-modal");
+    if (modal) modal.classList.add("hidden");
+
     appView.classList.add("hidden");
-
-    // Show authentication screen
     authView.classList.remove("hidden");
   });
+}
 
 
-// ==================== INITIAL STATE ====================
+// ==================== INITIAL AUTO-LOGIN CHECK ====================
 
-// Set initial timer display
-updateTimer();
+async function init() {
+  updateTimer();
+  const token = getToken();
 
-// Set initial house progress
-updateHouse();
+  if (token) {
+    try {
+      const res = await fetch(`${API_BASE}/api/user/profile`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      if (res.ok) {
+        authView.classList.add("hidden");
+        showView("timer");
+        loadProfileData();
+        loadHouseData();
+        return;
+      }
+    } catch (e) {
+      console.warn("Backend server connection check failed:", e);
+    }
+  }
+
+  // Show Auth view if no valid token
+  authView.classList.remove("hidden");
+  appView.classList.add("hidden");
+}
+
+init();
