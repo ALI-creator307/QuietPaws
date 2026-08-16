@@ -51,7 +51,7 @@ const itemQuotes = {
 
 // ==================== TIMER STATE ====================
 
-let selectedMinutes = 0;
+let selectedMinutes = 5;
 let totalSeconds = 300;
 let remaining = 300;
 
@@ -111,6 +111,7 @@ function showView(name) {
 // ==================== TIMER LOGIC ====================
 
 function formatTime(seconds) {
+  if (seconds <= 0) return "00:00";
   const minutes = Math.floor(seconds / 60);
   const secondsLeft = String(seconds % 60).padStart(2, "0");
   return `${String(minutes).padStart(2, "0")}:${secondsLeft}`;
@@ -130,20 +131,21 @@ function updateTimerDisplay() {
   }
 }
 
-function setTimerMinutes(mins) {
+function setTimerMinutes(mins, highlightPresets = false) {
   if (running) return;
   mins = Math.max(1, Math.min(180, Number(mins) || 5));
   selectedMinutes = mins;
   totalSeconds = selectedMinutes * 60;
   remaining = totalSeconds;
 
-  // Update custom input box
   const customInput = document.querySelector("#custom-minutes-input");
-  if (customInput) customInput.value = selectedMinutes;
+  if (customInput && document.activeElement !== customInput) {
+    customInput.value = selectedMinutes;
+  }
 
-  // Sync quick dial pills
+  // Highlight preset pill only if explicitly requested
   document.querySelectorAll(".quick-dial-pills .dial-pill").forEach((btn) => {
-    btn.classList.toggle("selected", Number(btn.dataset.minutes) === selectedMinutes);
+    btn.classList.toggle("selected", highlightPresets && Number(btn.dataset.minutes) === selectedMinutes);
   });
 
   updateTimerDisplay();
@@ -491,7 +493,7 @@ document.querySelectorAll(".catalog-tab").forEach(tab => {
 });
 
 
-// ==================== NAVIGATION & TIMER DURATION CONTROLS ====================
+// ==================== NAVIGATION & TIMER CONTROLS ====================
 
 document.querySelectorAll("[data-view]").forEach((button) => {
   button.addEventListener("click", () => {
@@ -499,32 +501,64 @@ document.querySelectorAll("[data-view]").forEach((button) => {
   });
 });
 
-// Quick Dial Pills Click
+// Quick Dial Pills Click (explicitly highlights clicked preset)
 document.querySelectorAll(".quick-dial-pills .dial-pill").forEach((button) => {
   button.addEventListener("click", () => {
-    setTimerMinutes(Number(button.dataset.minutes));
+    setTimerMinutes(Number(button.dataset.minutes), true);
   });
 });
 
-// Custom Minutes Stepper Inputs
+// Smooth Custom Minutes Input & Stepper
 const customMinutesInput = document.querySelector("#custom-minutes-input");
 if (customMinutesInput) {
   customMinutesInput.addEventListener("input", (e) => {
-    setTimerMinutes(e.target.value);
+    if (running) return;
+    const raw = e.target.value;
+
+    // Unselect preset pills while custom typing
+    document.querySelectorAll(".quick-dial-pills .dial-pill").forEach((btn) => {
+      btn.classList.remove("selected");
+    });
+
+    if (raw === "" || raw === null) {
+      remaining = 0;
+      updateTimerDisplay();
+      return;
+    }
+
+    let mins = parseInt(raw, 10);
+    if (!isNaN(mins) && mins > 0) {
+      mins = Math.min(180, mins);
+      selectedMinutes = mins;
+      totalSeconds = selectedMinutes * 60;
+      remaining = totalSeconds;
+      updateTimerDisplay();
+    }
+  });
+
+  customMinutesInput.addEventListener("blur", (e) => {
+    if (running) return;
+    let mins = parseInt(e.target.value, 10);
+    if (isNaN(mins) || mins < 1) {
+      mins = 1;
+    } else if (mins > 180) {
+      mins = 180;
+    }
+    setTimerMinutes(mins, false);
   });
 }
 
 const minusMinBtn = document.querySelector("#minus-min");
 if (minusMinBtn) {
   minusMinBtn.addEventListener("click", () => {
-    setTimerMinutes(selectedMinutes - 1);
+    setTimerMinutes(selectedMinutes - 1, false);
   });
 }
 
 const plusMinBtn = document.querySelector("#plus-min");
 if (plusMinBtn) {
   plusMinBtn.addEventListener("click", () => {
-    setTimerMinutes(selectedMinutes + 1);
+    setTimerMinutes(selectedMinutes + 1, false);
   });
 }
 
