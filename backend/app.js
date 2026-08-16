@@ -2,8 +2,10 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
-// Connect to SQLite, create tables, and seed initial data
-require('./db');
+const { initDb } = require('./db');
+
+// Initialize Neon database schema & catalog asynchronously
+initDb();
 
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
