@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QuietPaws</title>
+  <title>QuietPaws - Mindful Meditation & Collectibles</title>
+  <meta name="description" content="QuietPaws - A quiet space for your mind to relax, meditate, and collect cozy room companions." />
   <link rel="stylesheet" href="./css/style.css" />
 </head>
 
@@ -29,11 +30,21 @@
           </button>
         </div>
 
+        <label id="name-group" class="hidden">
+          Full Name
+          <input
+            type="text"
+            id="auth-name"
+            placeholder="Alex Smith"
+          />
+        </label>
+
         <label>
           Email
           <input
             required
             type="email"
+            id="auth-email"
             placeholder="you@example.com"
           />
         </label>
@@ -43,19 +54,16 @@
           <input
             required
             type="password"
+            id="auth-password"
             placeholder="••••••••"
           />
         </label>
 
         <div class="form-row">
           <label class="check">
-            <input type="checkbox" />
+            <input type="checkbox" checked />
             <span>Stay logged in</span>
           </label>
-
-          <button type="button" class="text-button">
-            Forgot password?
-          </button>
         </div>
 
         <p class="error" id="auth-error"></p>
@@ -73,7 +81,7 @@
       <!-- Header -->
       <header>
         <button class="brand" data-view="timer">
-          QuietPaws
+          🐾 QuietPaws
         </button>
 
         <nav>
@@ -100,16 +108,16 @@
       </header>
 
 
-      <!-- Streak -->
+      <!-- Streak Bar -->
       <div class="streak">
-        ♨
+        <span>♨</span>
 
         <span>
-          <strong id="streak-count">3 Day Streak</strong>
-          <small>Nothing is ever lost.</small>
+          <strong id="streak-count">0 Day Streak</strong>
+          <small id="streak-subtitle">Nothing is ever lost. Keep breathing.</small>
         </span>
 
-        <span class="trophy">♕</span>
+        <span class="trophy" id="best-streak-display">Best: 0 Days ♕</span>
       </div>
 
 
@@ -125,6 +133,14 @@
             </div>
           </div>
 
+          <div class="intention-wrap">
+            <input
+              type="text"
+              id="timer-intention"
+              placeholder="What is your quiet intention? (e.g. Deep breathing)..."
+            />
+          </div>
+
           <div class="durations">
             <button data-minutes="2">2 min</button>
             <button data-minutes="5" class="selected">5 min</button>
@@ -132,20 +148,20 @@
           </div>
 
           <div class="controls">
-            <button class="round secondary" id="reset-timer">
+            <button class="round secondary" id="reset-timer" title="Reset">
               ↻
             </button>
 
-            <button class="round play" id="start-timer">
+            <button class="round play" id="start-timer" title="Start / Pause">
               ▶
             </button>
 
-            <button class="round secondary" id="stop-timer">
+            <button class="round secondary" id="stop-timer" title="Stop">
               ■
             </button>
           </div>
 
-          <p class="caption">no sound will play</p>
+          <p class="caption">no sound will play · peaceful mind awaits</p>
         </div>
       </section>
 
@@ -156,21 +172,19 @@
           <h2>Your Cozy Corner</h2>
 
           <p>
-            <span id="cats-found">3</span> of 12 cats found ·
-            <span id="pieces-found">2</span> of 12 pieces placed
+            <span id="cats-found">0</span> of 12 cats found ·
+            <span id="pieces-found">0</span> of 12 pieces placed
           </p>
 
           <div class="progress">
-            <i id="progress-fill"></i>
+            <i id="progress-fill" style="width: 0%"></i>
           </div>
         </div>
 
+        <!-- Room Scene -->
         <div class="room">
           <div class="window">
-            <i></i>
-            <i></i>
-            <i></i>
-            <i></i>
+            <i></i><i></i><i></i><i></i>
           </div>
 
           <div class="sun"></div>
@@ -187,15 +201,25 @@
           <div class="table">◯</div>
           <div class="rug"></div>
 
-          <button class="cat-at-home" data-cat="Luna">
-            <img src="assets/cats/cat3.jpeg" alt="Luna the cat" />
-          </button>
+          <!-- Dynamic Unlocked Items in Room -->
+          <div id="room-cats-layer"></div>
+        </div>
 
-          <button class="cat-at-home cat-two" data-cat="Mochi">
-            <img src="assets/cats/cat1.jpeg" alt="Mochi the cat" />
-          </button>
+        <!-- Catalog Section -->
+        <div class="catalog-section">
+          <div class="catalog-header">
+            <h3>Collectible Catalog</h3>
 
-          <button class="empty-spot">?</button>
+            <div class="catalog-tabs">
+              <button class="catalog-tab active" data-filter="all">All (24)</button>
+              <button class="catalog-tab" data-filter="cat">Cats (12)</button>
+              <button class="catalog-tab" data-filter="piece">Pieces (12)</button>
+            </div>
+          </div>
+
+          <div class="catalog-grid" id="collectibles-grid">
+            <!-- Dynamically populated via API -->
+          </div>
         </div>
       </section>
 
@@ -205,18 +229,40 @@
         class="view page hidden profile-page"
         id="profile-view"
       >
-        <h2>Your profile</h2>
+        <h2>Your Profile</h2>
 
         <div class="profile-card">
+          <div class="avatar-circle">
+            <span id="profile-initial">👤</span>
+          </div>
 
-          <h3>Quiet progress</h3>
+          <h3 id="profile-name">User Name</h3>
+          <p id="profile-email" class="profile-email">email@example.com</p>
 
-          <p>
-            You have sat with yourself for three calm sessions.
-          </p>
+          <div class="profile-stats-grid">
+            <div class="stat-box">
+              <span class="stat-num" id="stat-current-streak">0</span>
+              <span class="stat-label">Current Streak</span>
+            </div>
 
-          <button class="primary" data-view="house">
-            See your house
+            <div class="stat-box">
+              <span class="stat-num" id="stat-best-streak">0</span>
+              <span class="stat-label">Best Streak</span>
+            </div>
+
+            <div class="stat-box">
+              <span class="stat-num" id="stat-sessions">0</span>
+              <span class="stat-label">Sessions Completed</span>
+            </div>
+
+            <div class="stat-box">
+              <span class="stat-num" id="stat-collectibles">0 / 24</span>
+              <span class="stat-label">Unlocked Items</span>
+            </div>
+          </div>
+
+          <button class="primary full" data-view="house" style="margin-top: 24px;">
+            ⌂ &nbsp; Visit Your House
           </button>
         </div>
       </section>
@@ -225,31 +271,32 @@
 
     <!-- ==================== REWARD / REVEAL VIEW ==================== -->
     <section id="reveal-view" class="view reveal-view hidden">
-      <h2>A new friend!</h2>
+      <h2>A New Companion Unlocked! 🌟</h2>
 
       <div class="reveal-card">
         <img
           id="reward-image"
-          src="assets/cats/cat3.jpeg"
-          alt="New cat friend"
+          src="assets/cats/mochi.png"
+          alt="New unlocked reward"
+          onerror="this.src='assets/cats/cat3.jpeg'"
         />
 
-        <h3 id="reward-name">Luna</h3>
+        <h3 id="reward-name">Mochi</h3>
 
         <p id="reward-trait">
           Naps in sunbeams, ignores everyone.
         </p>
 
         <p>
-          You sat with it for
-          <span id="reward-minutes">5</span>
-          minutes.
+          You completed a
+          <span id="reward-minutes">5</span>-minute
+          meditation session.
         </p>
       </div>
 
       <div class="reveal-actions">
         <button class="primary full" data-view="house">
-          ⌂ &nbsp; See your house
+          ⌂ &nbsp; See your cozy house
         </button>
 
         <button class="soft full" data-view="timer">
@@ -259,7 +306,7 @@
     </section>
 
 
-    <!-- ==================== CAT MODAL ==================== -->
+    <!-- ==================== COLLECTIBLE MODAL ==================== -->
     <div id="cat-modal" class="modal hidden">
       <div class="modal-card">
         <button class="close" data-close>×</button>
@@ -267,21 +314,22 @@
         <div class="cat-portrait">
           <img
             id="modal-image"
-            src="assets/cats/cat3.jpeg"
-            alt="Cat portrait"
+            src="assets/cats/mochi.png"
+            alt="Item portrait"
+            onerror="this.src='assets/cats/cat3.jpeg'"
           />
         </div>
 
-        <h2 id="modal-name">Luna</h2>
+        <h2 id="modal-name">Mochi</h2>
 
-        <span class="found">Found today</span>
+        <span class="found" id="modal-badge">Unlocked Item</span>
 
         <p class="trait" id="modal-trait">
           ☀ &nbsp; Naps in sunbeams, ignores everyone
         </p>
 
         <blockquote id="modal-quote">
-          “The sun is the best blanket.”
+          “Slow is a lovely speed.”
         </blockquote>
 
         <button class="primary full" data-close>
@@ -299,15 +347,11 @@
         <h2>Settings</h2>
 
         <p>
-          Everything here stays gentle and simple.
+          Your account & sessions stay synchronized with Neon Cloud Database.
         </p>
 
-        <button class="soft full" id="reset-data">
-          Reset demo data
-        </button>
-
-        <button class="text-button full" id="logout">
-          Log out
+        <button class="text-button full" id="logout" style="color: #c53030; font-size: 1.1rem; padding: 12px; font-weight: 600;">
+          🚪 Log Out
         </button>
       </div>
     </div>

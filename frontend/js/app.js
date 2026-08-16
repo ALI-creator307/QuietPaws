@@ -23,6 +23,23 @@ const revealView = document.querySelector("#reveal-view");
 const pages = document.querySelectorAll(".page");
 const navLinks = document.querySelectorAll(".nav-link");
 
+// Default quotes for items
+const itemQuotes = {
+  Mochi: "“Naps in sunbeams, ignores everyone.”",
+  Biscuit: "“Slow is a lovely speed.”",
+  Luna: "“The sun is the best blanket.”",
+  Oliver: "“Soft purrs soothe your soul.”",
+  Cleo: "“Royalty lies in quiet moments.”",
+  Simba: "“Brave hearts rest softly.”",
+  Peanut: "“Small moments bring big warmth.”",
+  Whiskers: "“Master of peaceful cat naps.”",
+  Jasper: "“Quietly observes the world with love.”",
+  Hazel: "“Loves warm tea and cozy corners.”",
+  Willow: "“Soft purrs that ease all stress.”",
+  Ziggy: "“Chases dust motes in gentle light.”"
+};
+
+
 // ==================== TIMER STATE ====================
 
 let selectedMinutes = 5;
@@ -33,22 +50,25 @@ let timerId;
 let running = false;
 
 
-// ==================== HOUSE STATE ====================
+// ==================== HOUSE & CATALOG STATE ====================
 
 let currentStreak = 0;
 let bestStreak = 0;
 let catsFound = 0;
 let piecesFound = 0;
 let authMode = "login"; // "login" or "signup"
+let catalogFilter = "all"; // "all", "cat", "piece"
+let cachedCatalog = { cats: [], pieces: [], houseComplete: false };
+let currentUser = null;
 
 
 // ==================== VIEW MANAGEMENT ====================
 
 function showView(name) {
-  // Hide the reward screen
+  // Hide reward reveal
   revealView.classList.add("hidden");
 
-  // Show the main application
+  // Show main app container
   appView.classList.remove("hidden");
 
   // Hide all pages
@@ -56,13 +76,13 @@ function showView(name) {
     page.classList.add("hidden");
   });
 
-  // Show the selected page
+  // Show selected page
   const selectedPage = document.querySelector(`#${name}-view`);
   if (selectedPage) {
     selectedPage.classList.remove("hidden");
   }
 
-  // Update active navigation link
+  // Update active nav link
   navLinks.forEach((link) => {
     link.classList.toggle(
       "active",
@@ -70,7 +90,7 @@ function showView(name) {
     );
   });
 
-  // Fetch updated data when opening House or Profile
+  // Trigger data refreshes on view switch
   if (name === "house") {
     loadHouseData();
   } else if (name === "profile") {
@@ -79,7 +99,7 @@ function showView(name) {
 }
 
 
-// ==================== TIMER ====================
+// ==================== TIMER LOGIC ====================
 
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60);
@@ -104,13 +124,15 @@ function updateTimer() {
 }
 
 async function finishSession() {
-  // Stop the timer
+  // Stop timer
   clearInterval(timerId);
   running = false;
 
-  // Restore start button icon
   const startBtn = document.querySelector("#start-timer");
   if (startBtn) startBtn.textContent = "▶";
+
+  const intentionInput = document.querySelector("#timer-intention");
+  const userIntention = intentionInput ? intentionInput.value.trim() : "";
 
   const token = getToken();
   let rewardData = null;
@@ -126,7 +148,7 @@ async function finishSession() {
         },
         body: JSON.stringify({
           durationMin: selectedMinutes,
-          intention: "Quiet pause"
+          intention: userIntention || "Mindful quiet pause"
         })
       });
 
@@ -140,28 +162,32 @@ async function finishSession() {
     }
   }
 
+  // Clear intention input
+  if (intentionInput) intentionInput.value = "";
+
   // Update streak count
   currentStreak = newStreakVal;
+  if (currentStreak > bestStreak) bestStreak = currentStreak;
   updateStreakDisplay();
 
-  // Populate reveal view
+  // Populate reveal screen
   if (rewardData) {
-    document.querySelector("#reward-image").src = rewardData.image_url || "assets/cats/cat3.jpeg";
-    document.querySelector("#reward-name").textContent = rewardData.name || "A new friend!";
+    document.querySelector("#reward-image").src = rewardData.image_url || "assets/cats/mochi.png";
+    document.querySelector("#reward-name").textContent = rewardData.name || "A New Companion!";
     document.querySelector("#reward-trait").textContent = rewardData.detail || "Joined your cozy room.";
   } else {
-    document.querySelector("#reward-image").src = "assets/cats/cat3.jpeg";
+    document.querySelector("#reward-image").src = "assets/cats/mochi.png";
     document.querySelector("#reward-name").textContent = "Quiet Moment";
-    document.querySelector("#reward-trait").textContent = "Peaceful mind achieved.";
+    document.querySelector("#reward-trait").textContent = "All room items collected! Your cozy space is complete.";
   }
 
   document.querySelector("#reward-minutes").textContent = selectedMinutes;
 
-  // Switch from app to reveal screen
+  // Show reveal view
   appView.classList.add("hidden");
   revealView.classList.remove("hidden");
 
-  // Reload house progress
+  // Reload house catalog
   loadHouseData();
 }
 
@@ -170,26 +196,31 @@ async function finishSession() {
 
 const authForm = document.querySelector("#auth-form");
 const authError = document.querySelector("#auth-error");
+const nameGroup = document.querySelector("#name-group");
 
 if (authForm) {
   authForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    authError.textContent = "";
+    if (authError) authError.textContent = "";
 
-    const emailInput = authForm.querySelector("input[type='email']");
-    const passwordInput = authForm.querySelector("input[type='password']");
+    const nameInput = document.querySelector("#auth-name");
+    const emailInput = document.querySelector("#auth-email");
+    const passwordInput = document.querySelector("#auth-password");
 
     const email = emailInput ? emailInput.value.trim() : "";
     const password = passwordInput ? passwordInput.value : "";
+    const name = (authMode === "signup" && nameInput)
+      ? nameInput.value.trim() || email.split("@")[0]
+      : email.split("@")[0];
 
     if (!email || !password) {
-      authError.textContent = "Please enter email and password";
+      if (authError) authError.textContent = "Please enter email and password";
       return;
     }
 
     const endpoint = authMode === "signup" ? "/api/auth/signup" : "/api/auth/login";
     const bodyData = authMode === "signup"
-      ? { name: email.split("@")[0], email, password }
+      ? { name, email, password }
       : { email, password };
 
     try {
@@ -202,23 +233,24 @@ if (authForm) {
       const data = await res.json();
 
       if (!res.ok) {
-        authError.textContent = data.error || "Authentication failed";
+        if (authError) authError.textContent = data.error || "Authentication failed";
         return;
       }
 
       setToken(data.token);
+      currentUser = data.user;
       authView.classList.add("hidden");
       showView("timer");
       loadProfileData();
       loadHouseData();
     } catch (err) {
       console.error("Auth error:", err);
-      authError.textContent = "Unable to connect to backend server.";
+      if (authError) authError.textContent = "Unable to connect to backend server.";
     }
   });
 }
 
-// Login / Sign up tabs toggle
+// Login / Sign up tab toggling
 document.querySelectorAll(".tab").forEach((tab) => {
   tab.addEventListener("click", () => {
     document.querySelectorAll(".tab").forEach((item) => {
@@ -228,6 +260,15 @@ document.querySelectorAll(".tab").forEach((tab) => {
     tab.classList.add("active");
     authMode = tab.dataset.mode || "login";
 
+    // Toggle Name field visibility
+    if (nameGroup) {
+      if (authMode === "signup") {
+        nameGroup.classList.remove("hidden");
+      } else {
+        nameGroup.classList.add("hidden");
+      }
+    }
+
     const submitBtn = document.querySelector("#auth-form .primary");
     if (submitBtn) {
       submitBtn.textContent = authMode === "login" ? "Log In" : "Create account";
@@ -236,12 +277,18 @@ document.querySelectorAll(".tab").forEach((tab) => {
 });
 
 
-// ==================== DATA FETCHING ====================
+// ==================== PROFILE & HOUSE DATA ====================
 
 function updateStreakDisplay() {
   const streakCountEl = document.querySelector("#streak-count");
+  const bestStreakEl = document.querySelector("#best-streak-display");
+
   if (streakCountEl) {
     streakCountEl.textContent = `${currentStreak} Day Streak`;
+  }
+
+  if (bestStreakEl) {
+    bestStreakEl.textContent = `Best: ${bestStreak} Days ♕`;
   }
 }
 
@@ -260,10 +307,26 @@ async function loadProfileData() {
       bestStreak = data.streak ? data.streak.best : 0;
       updateStreakDisplay();
 
-      const profileCardText = document.querySelector("#profile-view .profile-card p");
-      if (profileCardText) {
-        profileCardText.textContent = `Hello ${data.name || 'friend'}! You have sat with yourself for ${data.totalSessions || 0} calm sessions. Best streak: ${bestStreak} days.`;
+      // Update Profile UI
+      const profileNameEl = document.querySelector("#profile-name");
+      const profileEmailEl = document.querySelector("#profile-email");
+      const profileInitialEl = document.querySelector("#profile-initial");
+
+      if (profileNameEl) profileNameEl.textContent = data.name || "Mindful Meditator";
+      if (profileEmailEl) profileEmailEl.textContent = data.email || "";
+      if (profileInitialEl && data.name) {
+        profileInitialEl.textContent = data.name.charAt(0).toUpperCase();
       }
+
+      const statCurrent = document.querySelector("#stat-current-streak");
+      const statBest = document.querySelector("#stat-best-streak");
+      const statSessions = document.querySelector("#stat-sessions");
+      const statCollectibles = document.querySelector("#stat-collectibles");
+
+      if (statCurrent) statCurrent.textContent = currentStreak;
+      if (statBest) statBest.textContent = bestStreak;
+      if (statSessions) statSessions.textContent = data.totalSessions || 0;
+      if (statCollectibles) statCollectibles.textContent = `${catsFound + piecesFound} / 24`;
     } else if (res.status === 401) {
       setToken(null);
       appView.classList.add("hidden");
@@ -285,6 +348,8 @@ async function loadHouseData() {
 
     if (res.ok) {
       const data = await res.json();
+      cachedCatalog = data;
+
       const unlockedCats = (data.cats || []).filter(c => c.unlocked);
       const unlockedPieces = (data.pieces || []).filter(p => p.unlocked);
 
@@ -300,6 +365,8 @@ async function loadHouseData() {
       if (progressFillEl) {
         progressFillEl.style.width = `${((catsFound + piecesFound) / 24) * 100}%`;
       }
+
+      renderCatalogGrid();
     }
   } catch (err) {
     console.error("Error loading house data:", err);
@@ -307,7 +374,90 @@ async function loadHouseData() {
 }
 
 
-// ==================== NAVIGATION & DURATION ====================
+// ==================== CATALOG GRID RENDERER ====================
+
+function renderCatalogGrid() {
+  const gridEl = document.querySelector("#collectibles-grid");
+  if (!gridEl) return;
+
+  gridEl.innerHTML = "";
+
+  const allItems = [];
+
+  if (catalogFilter === "all" || catalogFilter === "cat") {
+    (cachedCatalog.cats || []).forEach(cat => allItems.push({ ...cat, category: 'cat' }));
+  }
+
+  if (catalogFilter === "all" || catalogFilter === "piece") {
+    (cachedCatalog.pieces || []).forEach(piece => allItems.push({ ...piece, category: 'piece' }));
+  }
+
+  allItems.forEach(item => {
+    const card = document.createElement("div");
+    card.className = `catalog-card ${item.unlocked ? 'unlocked' : 'locked'}`;
+
+    const isCat = item.category === 'cat';
+    const fallbackSrc = isCat ? 'assets/cats/mochi.png' : 'assets/pieces/rug.png';
+
+    card.innerHTML = `
+      <img
+        class="catalog-card-img"
+        src="${item.image_url || fallbackSrc}"
+        alt="${item.name}"
+        onerror="this.onerror=null; this.src='${fallbackSrc}';"
+      />
+      <h4>${item.unlocked ? item.name : '???'}</h4>
+      <p>${item.unlocked ? (item.detail || 'Unlocked companion') : 'Complete sessions to unlock'}</p>
+      <span class="badge ${item.unlocked ? 'badge-unlocked' : 'badge-locked'}">
+        ${item.unlocked ? '✓ Unlocked' : '🔒 Locked'}
+      </span>
+    `;
+
+    if (item.unlocked) {
+      card.addEventListener("click", () => openItemModal(item));
+    }
+
+    gridEl.appendChild(card);
+  });
+}
+
+function openItemModal(item) {
+  const modal = document.querySelector("#cat-modal");
+  if (!modal) return;
+
+  const modalImg = document.querySelector("#modal-image");
+  const modalName = document.querySelector("#modal-name");
+  const modalTrait = document.querySelector("#modal-trait");
+  const modalQuote = document.querySelector("#modal-quote");
+  const modalBadge = document.querySelector("#modal-badge");
+
+  const fallbackSrc = item.type === 'cat' ? 'assets/cats/mochi.png' : 'assets/pieces/rug.png';
+
+  if (modalImg) modalImg.src = item.image_url || fallbackSrc;
+  if (modalName) modalName.textContent = item.name;
+  if (modalTrait) modalTrait.textContent = `☀  ${item.detail || 'A calm companion for your space.'}`;
+  if (modalQuote) modalQuote.textContent = itemQuotes[item.name] || "“In quietness and confidence shall be your strength.”";
+  if (modalBadge) {
+    const dateStr = item.unlockedAt ? new Date(item.unlockedAt).toLocaleDateString() : 'Unlocked';
+    modalBadge.textContent = `Unlocked ${dateStr}`;
+  }
+
+  modal.classList.remove("hidden");
+}
+
+
+// Catalog Tabs (All / Cats / Pieces)
+document.querySelectorAll(".catalog-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".catalog-tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    catalogFilter = tab.dataset.filter || "all";
+    renderCatalogGrid();
+  });
+});
+
+
+// ==================== NAVIGATION & TIMER DURATION ====================
 
 document.querySelectorAll("[data-view]").forEach((button) => {
   button.addEventListener("click", () => {
@@ -402,6 +552,7 @@ const logoutBtn = document.querySelector("#logout");
 if (logoutBtn) {
   logoutBtn.addEventListener("click", () => {
     setToken(null);
+    currentUser = null;
     const modal = document.querySelector("#settings-modal");
     if (modal) modal.classList.add("hidden");
 
@@ -411,7 +562,7 @@ if (logoutBtn) {
 }
 
 
-// ==================== INITIAL AUTO-LOGIN CHECK ====================
+// ==================== INITIAL STARTUP ====================
 
 async function init() {
   updateTimer();
@@ -431,11 +582,10 @@ async function init() {
         return;
       }
     } catch (e) {
-      console.warn("Backend server connection check failed:", e);
+      console.warn("Backend connection check warning:", e);
     }
   }
 
-  // Show Auth view if no valid token
   authView.classList.remove("hidden");
   appView.classList.add("hidden");
 }
