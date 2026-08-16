@@ -51,7 +51,7 @@ const itemQuotes = {
 
 // ==================== TIMER STATE ====================
 
-let selectedMinutes = 5;
+let selectedMinutes = 0;
 let totalSeconds = 300;
 let remaining = 300;
 
