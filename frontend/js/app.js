@@ -1,8 +1,6 @@
 // ==================== CONFIG & API ====================
 
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://localhost:5000'
-  : 'https://quiet-paws-mu.vercel.app';
+const API_BASE = 'https://quiet-paws-mu.vercel.app';
 
 function getToken() {
   return localStorage.getItem('quietpaws_token');
@@ -24,17 +22,6 @@ const revealView = document.querySelector("#reveal-view");
 
 const pages = document.querySelectorAll(".page");
 const navLinks = document.querySelectorAll(".nav-link");
-
-// Default fallback catalog mapping
-const defaultCatQuotes = {
-  Mochi: "“The sun is the best blanket.”",
-  Biscuit: "“Slow is a lovely speed.”",
-  Luna: "“There is time for one more rest.”",
-  Oliver: "“Soft purrs fix everything.”",
-  Cleo: "“Royalty lies in quiet moments.”",
-  Simba: "“Brave hearts rest softly.”"
-};
-
 
 // ==================== TIMER STATE ====================
 
