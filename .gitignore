@@ -1,0 +1,10 @@
+node_modules/
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+test_*.db
+.env
+.env.*
+*.env
+backend/.env
