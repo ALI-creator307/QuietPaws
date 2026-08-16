@@ -113,7 +113,7 @@ function showView(name) {
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60);
   const secondsLeft = String(seconds % 60).padStart(2, "0");
-  return `${minutes}:${secondsLeft}`;
+  return `${String(minutes).padStart(2, "0")}:${secondsLeft}`;
 }
 
 function updateTimerDisplay() {
@@ -141,8 +141,8 @@ function setTimerMinutes(mins) {
   const customInput = document.querySelector("#custom-minutes-input");
   if (customInput) customInput.value = selectedMinutes;
 
-  // Sync preset pills
-  document.querySelectorAll(".preset-pills button").forEach((btn) => {
+  // Sync quick dial pills
+  document.querySelectorAll(".quick-dial-pills .dial-pill").forEach((btn) => {
     btn.classList.toggle("selected", Number(btn.dataset.minutes) === selectedMinutes);
   });
 
@@ -154,8 +154,8 @@ async function finishSession() {
   clearInterval(timerId);
   running = false;
 
-  const startBtn = document.querySelector("#start-timer");
-  if (startBtn) startBtn.textContent = "▶";
+  const playIcon = document.querySelector("#play-icon");
+  if (playIcon) playIcon.textContent = "▶";
 
   const intentionInput = document.querySelector("#timer-intention");
   const userIntention = intentionInput ? intentionInput.value.trim() : "";
@@ -314,7 +314,7 @@ function updateStreakDisplay() {
   }
 
   if (bestStreakEl) {
-    bestStreakEl.textContent = `♕ Best: ${bestStreak} Days`;
+    bestStreakEl.textContent = `👑 Best: ${bestStreak} Days`;
   }
 }
 
@@ -499,8 +499,8 @@ document.querySelectorAll("[data-view]").forEach((button) => {
   });
 });
 
-// Preset Pills Click
-document.querySelectorAll(".preset-pills button").forEach((button) => {
+// Quick Dial Pills Click
+document.querySelectorAll(".quick-dial-pills .dial-pill").forEach((button) => {
   button.addEventListener("click", () => {
     setTimerMinutes(Number(button.dataset.minutes));
   });
@@ -532,17 +532,19 @@ if (plusMinBtn) {
 // ==================== TIMER CONTROLS ====================
 
 const startBtn = document.querySelector("#start-timer");
+const playIcon = document.querySelector("#play-icon");
+
 if (startBtn) {
   startBtn.addEventListener("click", () => {
     if (running) {
       clearInterval(timerId);
       running = false;
-      startBtn.textContent = "▶";
+      if (playIcon) playIcon.textContent = "▶";
       return;
     }
 
     running = true;
-    startBtn.textContent = "Ⅱ";
+    if (playIcon) playIcon.textContent = "Ⅱ";
 
     timerId = setInterval(() => {
       remaining--;
@@ -562,7 +564,7 @@ if (resetBtn) {
     running = false;
     remaining = totalSeconds;
     updateTimerDisplay();
-    if (startBtn) startBtn.textContent = "▶";
+    if (playIcon) playIcon.textContent = "▶";
   });
 }
 
@@ -573,7 +575,7 @@ if (stopBtn) {
     running = false;
     remaining = totalSeconds;
     updateTimerDisplay();
-    if (startBtn) startBtn.textContent = "▶";
+    if (playIcon) playIcon.textContent = "▶";
   });
 }
 

@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QuietPaws - Mindful Meditation & Cozy Companion House</title>
-  <meta name="description" content="QuietPaws - A quiet space for your mind to relax, meditate with custom timers, and collect cozy companions." />
+  <title>QuietPaws - Mindful Meditation & Sanctuary Companions</title>
+  <meta name="description" content="QuietPaws - A quiet, luxury space for your mind to relax, meditate with custom timers, and collect cozy companions." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./css/style.css" />
 </head>
 
@@ -14,14 +17,14 @@
     <!-- ==================== AUTH VIEW ==================== -->
     <section id="auth-view" class="view auth-view">
       <div class="auth-brand">
-        <div class="brand-badge">
+        <div class="brand-badge glow-avatar">
           <span class="paw-icon">🐾</span>
         </div>
         <h1>QuietPaws</h1>
-        <p>A gentle space for your mind to rest & focus.</p>
+        <p>A serene space for your mind to rest & focus.</p>
       </div>
 
-      <form class="auth-card" id="auth-form">
+      <form class="auth-card glass-card" id="auth-form">
         <div class="tabs">
           <button type="button" class="tab active" data-mode="login">
             Log In
@@ -90,7 +93,7 @@
             ⏳ Timer
           </button>
           <button data-view="house" class="nav-link">
-            🏠 House
+            🏠 Sanctuary
           </button>
           <button data-view="profile" class="nav-link">
             👤 Profile
@@ -108,59 +111,52 @@
 
 
       <!-- Streak Bar -->
-      <div class="streak-bar">
+      <div class="streak-bar glass-card">
         <div class="streak-item">
-          <span class="fire-icon">♨</span>
+          <span class="fire-icon">🔥</span>
           <div class="streak-text">
             <strong id="streak-count">0 Day Streak</strong>
-            <small id="streak-subtitle">Nothing is lost. Keep breathing.</small>
+            <small id="streak-subtitle">Mindful quiet momentum</small>
           </div>
         </div>
 
         <div class="streak-trophy" id="best-streak-display">
-          ♕ Best: 0 Days
+          👑 Best: 0 Days
         </div>
       </div>
 
 
-      <!-- ==================== TIMER VIEW ==================== -->
+      <!-- ==================== TIMER VIEW (Redesigned & High-End) ==================== -->
       <section class="view page" id="timer-view">
-        <div class="timer-card-wrap">
+        <div class="timer-hero-container">
 
-          <!-- Circular Neumorphic Timer Ring -->
-          <div class="timer-ring-container" id="timer-ring">
-            <div class="timer-inner-circle">
-              <span class="pulse-paw">🐾</span>
-              <strong id="time-display">5:00</strong>
-              <small>quiet mindfulness</small>
-            </div>
-          </div>
-
-          <!-- Mindful Intention Input -->
-          <div class="intention-input-box">
-            <span class="sparkle">✨</span>
+          <!-- Intention Capsule -->
+          <div class="intention-capsule">
+            <span class="sparkle-icon">✨</span>
             <input
               type="text"
               id="timer-intention"
-              placeholder="What is your quiet intention today? (e.g. Deep breathing)..."
+              placeholder="What is your quiet intention today? (e.g. Deep Breathing)..."
             />
           </div>
 
-          <!-- Custom Timer Selection & Inputs -->
-          <div class="timer-settings-panel">
-            <div class="preset-pills">
-              <button data-minutes="2">2 min</button>
-              <button data-minutes="5" class="selected">5 min</button>
-              <button data-minutes="10">10 min</button>
-              <button data-minutes="25">25 min (Pomodoro)</button>
-              <button data-minutes="45">45 min</button>
+          <!-- Main 3D Glassmorphic Timer Card -->
+          <div class="timer-main-card glass-card">
+
+            <!-- Circular Timer Dial -->
+            <div class="timer-ring-3d" id="timer-ring">
+              <div class="timer-core">
+                <span class="pulse-paw">🐾</span>
+                <strong id="time-display">05:00</strong>
+                <span class="timer-sublabel">MINDFULNESS SESSION</span>
+              </div>
             </div>
 
-            <!-- Custom Minutes Stepper -->
-            <div class="custom-timer-stepper">
-              <label for="custom-minutes-input">Custom Duration:</label>
-              <div class="stepper-controls">
-                <button type="button" class="stepper-btn" id="minus-min" title="Decrease 1 minute">-</button>
+            <!-- Integrated Time Picker & Stepper -->
+            <div class="duration-picker">
+              <button type="button" class="dur-btn" id="minus-min" title="Decrease 1 minute">-</button>
+              
+              <div class="dur-display">
                 <input
                   type="number"
                   id="custom-minutes-input"
@@ -168,40 +164,51 @@
                   max="180"
                   value="5"
                 />
-                <span class="stepper-unit">minutes</span>
-                <button type="button" class="stepper-btn" id="plus-min" title="Increase 1 minute">+</button>
+                <span class="dur-unit">MINUTES</span>
               </div>
+
+              <button type="button" class="dur-btn" id="plus-min" title="Increase 1 minute">+</button>
             </div>
+
+            <!-- Quick Dial Pills (Unified inside Timer Card) -->
+            <div class="quick-dial-pills">
+              <button data-minutes="5" class="dial-pill selected">5m</button>
+              <button data-minutes="10" class="dial-pill">10m</button>
+              <button data-minutes="15" class="dial-pill">15m</button>
+              <button data-minutes="25" class="dial-pill">25m</button>
+              <button data-minutes="45" class="dial-pill">45m</button>
+            </div>
+
           </div>
 
-          <!-- Play / Pause / Reset Controls -->
-          <div class="timer-controls">
-            <button class="round-control secondary-btn" id="reset-timer" title="Reset Timer">
+          <!-- Floating 3D Action Controls -->
+          <div class="action-controls-row">
+            <button class="ctrl-btn secondary-ctrl" id="reset-timer" title="Reset Timer">
               ↻
             </button>
 
-            <button class="round-control play-btn glow-play" id="start-timer" title="Start / Pause">
-              ▶
+            <button class="ctrl-btn play-ctrl glow-master-play" id="start-timer" title="Start / Pause">
+              <span id="play-icon">▶</span>
             </button>
 
-            <button class="round-control secondary-btn" id="stop-timer" title="Stop Timer">
+            <button class="ctrl-btn secondary-ctrl" id="stop-timer" title="Stop Timer">
               ■
             </button>
           </div>
 
-          <p class="timer-caption">no sound will play · peaceful mind awaits</p>
+          <p class="peaceful-caption">🌸 Silent session · Your cozy companion awaits at completion</p>
         </div>
       </section>
 
 
-      <!-- ==================== HOUSE VIEW (No room banner!) ==================== -->
+      <!-- ==================== HOUSE / SANCTUARY VIEW ==================== -->
       <section class="view page hidden" id="house-view">
         <div class="house-dashboard-header">
           <h2>Your Cozy Sanctuary</h2>
           <p class="house-subtitle">Collect companions & furniture for your peaceful space</p>
 
           <div class="house-stats-row">
-            <div class="house-stat-card">
+            <div class="house-stat-card glass-card">
               <span class="stat-icon">🐱</span>
               <div>
                 <strong id="cats-found">0 / 12</strong>
@@ -209,7 +216,7 @@
               </div>
             </div>
 
-            <div class="house-stat-card">
+            <div class="house-stat-card glass-card">
               <span class="stat-icon">🛋️</span>
               <div>
                 <strong id="pieces-found">0 / 12</strong>
@@ -219,7 +226,7 @@
           </div>
 
           <!-- Overall Progress Bar -->
-          <div class="progress-bar-wrap">
+          <div class="progress-bar-wrap glass-card">
             <div class="progress-label">
               <span>Overall Progress</span>
               <span id="progress-percent">0%</span>
@@ -243,7 +250,7 @@
           </div>
 
           <div class="catalog-grid" id="collectibles-grid">
-            <!-- Dynamically populated via API with binary PNG assets -->
+            <!-- Dynamically populated via API -->
           </div>
         </div>
       </section>
@@ -256,7 +263,7 @@
       >
         <h2>Your Profile & Progress</h2>
 
-        <div class="profile-card-container">
+        <div class="profile-card-container glass-card">
           <div class="avatar-glow">
             <span id="profile-initial">👤</span>
           </div>
@@ -301,7 +308,7 @@
         <h2>A New Companion Unlocked!</h2>
       </div>
 
-      <div class="reveal-card-container">
+      <div class="reveal-card-container glass-card">
         <div class="reveal-img-circle">
           <img
             id="reward-image"
@@ -335,7 +342,7 @@
 
     <!-- ==================== ITEM MODAL ==================== -->
     <div id="cat-modal" class="modal hidden">
-      <div class="modal-card">
+      <div class="modal-card glass-card">
         <button class="close" data-close>×</button>
 
         <div class="cat-portrait">
@@ -367,7 +374,7 @@
 
     <!-- ==================== SETTINGS MODAL ==================== -->
     <div id="settings-modal" class="modal hidden">
-      <div class="modal-card settings-card">
+      <div class="modal-card settings-card glass-card">
         <button class="close" data-close>×</button>
 
         <h2>App Settings</h2>
